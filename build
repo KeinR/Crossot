@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+mingw32-g++ src/*.cpp stb.o -o cross.exe

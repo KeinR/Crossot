@@ -1,6 +1,10 @@
 # Prerequisites
 *.d
 
+# *.png
+# *.PNG
+# *.jpg
+
 # Compiled Object files
 *.slo
 *.lo
