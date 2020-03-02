@@ -3,11 +3,13 @@
 
 #include <map>
 
-#define BOX_WIDTH 18
-// +1
-#define BOX_DIMENSIONS 17
+#define K_REASONABLE_SKIP 8
 
-typedef const unsigned char* raw;
+// typedef const unsigned char* raw;
+
+struct error {
+    // Meh
+};
 
 struct color {
     unsigned char r;
@@ -28,35 +30,33 @@ struct answer {
     bool vertical;
 };
 
-struct Handle;
-
-class Data {
+class IParser {
     public:
-    bool addEntree(const Handle &handle, const int &i, const node &n);
+    IParser(const char *path);
     private:
-    std::map<const int, node> data; // Potential bug: int values aren't kept track of properly, in wich case would need to keep track of switches indiv
-};
-
-struct Handle {
+    void parseSect(int i, bool vertical);
+    // private:
     const unsigned char *const &img;
-    const int &width;
-    const int &height;
-    const int &channels;
-    const int channelsM1;
-    const int movVert;
-    const int movVertSqr;
-    const int size;
+    int width;
+    int height;
+    int channels;
+    int channelsM1;
+    int movVert;
+    int movVertSqr;
+    int size;
+    int boxDimensions;
     // Background colors
-    const unsigned char &r;
-    const unsigned char &b;
-    const unsigned char &g;
-    // Mutable data
-    const Data data;
+    unsigned char r;
+    unsigned char b;
+    unsigned char g;
+    std::map<const int, node> data; // Potential bug: int values aren't kept track of properly, in wich case would need to keep track of switches indiv
+    bool addEntree(const int &i, const node &n);
+    int parseNumber(int i);
+    bool pixelColorEq(const int &index);
+    bool pixelColorEq(const int &index, const int val);
+    void debug_printCoords(int i);
 };
 
-void parseSect(const Handle &handle, int i, bool vertical);
-int parseNumber(const Handle &handle, int i);
-bool pixelColorEq(const Handle &handle, const int &index);
-bool pixelColorEq(const Handle &handle, const int &index, const int val);
+int lookupNumber(const std::list<int> &vertical, const std::list<int> &horizontal);
 
 #endif
