@@ -17,12 +17,12 @@ struct color {
     unsigned char g;
 };
 
-struct node {
+class Node {
+    public:
+    Node(const bool &hasNumber);
+    private:
+    const bool hasNumber;
     char val = '\0';
-    node *nTop;
-    node *nBelow;
-    node *nLeft;
-    node *nRight;
 };
 
 struct answer {
@@ -34,7 +34,7 @@ class IParser {
     public:
     IParser(const char *path);
     private:
-    void parseSect(int i, bool vertical);
+    void parseBox(int i, int x, int y);
     // private:
     const unsigned char *const &img;
     int width;
@@ -49,14 +49,19 @@ class IParser {
     unsigned char r;
     unsigned char b;
     unsigned char g;
-    std::map<const int, node> data; // Potential bug: int values aren't kept track of properly, in wich case would need to keep track of switches indiv
-    bool addEntree(const int &i, const node &n);
-    int parseNumber(int i);
+    // std::map<const int, node> data; // Potential bug: int values aren't kept track of properly, in wich case would need to keep track of switches indiv
+    std::map<int, std::map<int, Node>> locatorMap;
+    int locatorMinX;
+    int locatorMaxX;
+    int locatorMinY;
+    int locatorMaxY;
+    bool addLocation(const int &x, const int &y, const node &n);
+    bool hasNumber(int i);
     bool pixelColorEq(const int &index);
     bool pixelColorEq(const int &index, const int val);
     void debug_printCoords(int i);
 };
 
-int lookupNumber(const std::list<int> &vertical, const std::list<int> &horizontal);
+// int lookupNumber(const std::list<int> &vertical, const std::list<int> &horizontal);
 
 #endif
