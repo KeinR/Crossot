@@ -1,2 +1,3 @@
 #!/usr/bin/env bash
-mingw32-g++ src/*.cpp stb.o -o cross.exe
+mingw32-g++ src/*.cpp external/*.o -o cross.exe
+# mingw32-g++ external/stb.cpp -c -o stb.o

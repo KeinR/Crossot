@@ -7,6 +7,9 @@
 #include "main.h"
 #include "../external/stb_image.h"
 
+// TEMP
+#include <windows.h>
+
 int main(int argc, char *argv[]) {
     IParser parse(argv[1]);
 }
@@ -43,6 +46,7 @@ IParser::IParser(const char *path): img(stbi_load(path, &width, &height, &channe
 
     std::cout << "BG = " << (int)img[0] << ", " << (int)img[1] << ", " << (int)img[2] << std::endl;
 
+
     int i = channels;
     // Find first box and determine box size
     for (; i+channelsM1 < size; i += channels) {
@@ -78,41 +82,63 @@ IParser::IParser(const char *path): img(stbi_load(path, &width, &height, &channe
     std::cout << "DIMENSIONS: " << boxDimensions << std::endl;
 
     movVertSqr = movVert * boxDimensions;
+    moveHorzSqr = channels * (boxDimensions + 3);
 
-    parseSect(i, true);
+    parseBox(i, 0, 0, 2);
 
-    // bool vertical;
-    // int iu = i + movVertSqr;
-    // if (!pixelColorEq(handle, iu)) {
-    //     parseSect(handle, iu, true);
-    // }
-    // iu = i + BOX_WIDTH;
-    // if (!pixelColorEq(handle, iu)) {
-    //     parseSect(handle, iu, false);
-    // }
     std::cout << "Sequencing complete(?)" << std::endl;
 }
 
-void IParser::parseBox(int i, int x, int y, bool direction) {
-    const int start = i;
+void IParser::parseBox(const int &i, const int &x, const int &y, const short &direction) {
     const bool spawn = hasNumber(i);
     const Node n = new Node(spawn);
 
     if (addLocation(x, y, n)) {
-
+        debug_printCoords(i);
+        Sleep(1000);
+        if (!pixelColorEq(i + moveHorzSqr)) { // East
+            std::cout << "Add " << moveHorzSqr << std::endl;
+            parseBox(i + moveHorzSqr, x+1, y, 0);
+        }
+        if (!pixelColorEq(i + movVertSqr)) { // South
+            std::cout << "Add " << movVertSqr << std::endl;
+            parseBox(i + movVertSqr, x, y+1, 1);
+        }
+        if (!pixelColorEq(i - moveHorzSqr)) { // West
+            std::cout << "Sub " << moveHorzSqr << std::endl;
+            parseBox(i - moveHorzSqr, x-1, y, 2);
+        }
+        if (!pixelColorEq(i - movVertSqr)) { // North
+            std::cout << "Sub " << movVertSqr << std::endl;
+            parseBox(i + boxDimensions, x, y-1, 3);
+        }
+    } /* else { // If this square was allready added, to prevent recursing out of control, just continue to end of block
+        switch (direction) {
+            case 0: // East
+                if (pixelColorEq(i + boxDimensions)) {
+                    parseBox(i + boxDimensions, x+1, y, 0);
+                }
+                break;
+            case 1: // South
+                if (pixelColorEq(i + movVertSqr)) {
+                    parseBox(i + movVertSqr, x, y+1, 1);
+                }
+                break;
+            case 2: // West
+                if (pixelColorEq(i - boxDimensions)) {
+                    parseBox(i - boxDimensions, x-1, y, 2);
+                }
+                break;
+            case 3: // North
+                if (pixelColorEq(i - movVertSqr)) {
+                    parseBox(i + boxDimensions, x, y-1, 3);
+                }
+                break;
+            default: throw "Line 107 done messed up";
+        }
     }
-
-    switch (direction) {
-        case 0:
-            break;
-        case 1:
-            break;
-        case 2:
-            break;
-        case 3:
-            break;
-        default: throw "Line 107";
-    }
+    */
+    // And well I guess that's the end of it
 
 
     // if (vertical) {
@@ -127,7 +153,8 @@ void IParser::parseBox(int i, int x, int y, bool direction) {
     // }
 }
 
-bool IParser::addLocation(const int &x, const int &y, const Node &n) {
+bool IParser::addLocation(int x, int y, Node n) {
+    std::cout << "COords: (" << x << ", " << y << ")" << std::endl;
     if (!locatorMap.count(x)) {
         std::map<int, Node> leMap;
         leMap.emplace(y, n);
@@ -144,9 +171,9 @@ bool IParser::addLocation(const int &x, const int &y, const Node &n) {
 }
 
 bool IParser::hasNumber(int i) {
-    std::cout << "------------------------------------------" << std::endl;
-    std::cout << ((i / channels) % width) << ", " << ((i / channels) / width) << std::endl;
-    std::cout << "------------------------------------------" << std::endl;
+    // std::cout << "------------------------------------------" << std::endl;
+    // std::cout << ((i / channels) % width) << ", " << ((i / channels) / width) << std::endl;
+    // std::cout << "------------------------------------------" << std::endl;
     for (;; i -= movVert) {
         if (!pixelColorEq(i, 0xFF)) {
             i += movVert;
@@ -159,9 +186,9 @@ bool IParser::hasNumber(int i) {
             break;
         }
     }
-    std::cout << "------------------------------------------" << std::endl;
-    std::cout << ((i / channels) % width) << ", " << ((i / channels) / width) << std::endl;
-    std::cout << "------------------------------------------" << std::endl;
+    // std::cout << "------------------------------------------" << std::endl;
+    // std::cout << ((i / channels) % width) << ", " << ((i / channels) / width) << std::endl;
+    // std::cout << "------------------------------------------" << std::endl;
     for (int c = 0, r = 0;;c++) {
         if (c >= boxDimensions) {
             c = 0;
@@ -171,10 +198,10 @@ bool IParser::hasNumber(int i) {
             }
         }
         const int loc = i - c * channels + r * movVert;
-        std::cout << "~~~~~~~~~~~~~~~~~~~~~";
-        std::cout << c << std::endl;
-        std::cout << (loc / channels) << std::endl;
-        std::cout << ((loc / channels) % width) << ", " << ((loc / channels) / width) << std::endl;
+        // std::cout << "~~~~~~~~~~~~~~~~~~~~~";
+        // std::cout << c << std::endl;
+        // std::cout << (loc / channels) << std::endl;
+        // std::cout << ((loc / channels) % width) << ", " << ((loc / channels) / width) << std::endl;
         // map[boxDimensions-1-c][r] = (img[loc] << 16) | (img[loc+1] << 8) | img[loc+2];
 
         if ((img[loc] << 16) | (img[loc+1] << 8) | img[loc+2] != 0xFFFFFF) {
@@ -185,11 +212,11 @@ bool IParser::hasNumber(int i) {
 }
 
 bool IParser::pixelColorEq(const int &index) {
-    return r == img[index] && b == img[index+1] && g == img[index+2];
+    return index < 0 || index >= size || (r == img[index] && b == img[index+1] && g == img[index+2]);
 }
 
 bool IParser::pixelColorEq(const int &index, const int val) {
-    return val == img[index] && val == img[index+1] && val == img[index+2];
+    return index < 0 || index >= size || (val == img[index] && val == img[index+1] && val == img[index+2]);
 }
 
 void IParser::debug_printCoords(int i) {

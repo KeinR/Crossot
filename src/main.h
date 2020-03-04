@@ -26,7 +26,7 @@ class Node {
 };
 
 struct answer {
-    node *list;
+    Node *list;
     bool vertical;
 };
 
@@ -34,7 +34,7 @@ class IParser {
     public:
     IParser(const char *path);
     private:
-    void parseBox(int i, int x, int y);
+    void parseBox(const int &i, const int &x, const int &y, const short &direction);
     // private:
     const unsigned char *const &img;
     int width;
@@ -43,6 +43,7 @@ class IParser {
     int channelsM1;
     int movVert;
     int movVertSqr;
+    int moveHorzSqr;
     int size;
     int boxDimensions;
     // Background colors
@@ -55,7 +56,7 @@ class IParser {
     int locatorMaxX;
     int locatorMinY;
     int locatorMaxY;
-    bool addLocation(const int &x, const int &y, const node &n);
+    bool addLocation(int x, int y, Node n);
     bool hasNumber(int i);
     bool pixelColorEq(const int &index);
     bool pixelColorEq(const int &index, const int val);
