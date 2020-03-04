@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
 
 IParser::IParser(const char *path): img(stbi_load(path, &width, &height, &channels, 0)) {
     if (img == NULL) {
-        std::cout << "Error: Failed to load image" << std::endl;
+        std::cout << "Error: Failed to load image: " << stbi_failure_reason() << std::endl;
         error e;
         throw e;
     }
@@ -82,7 +82,7 @@ IParser::IParser(const char *path): img(stbi_load(path, &width, &height, &channe
     std::cout << "DIMENSIONS: " << boxDimensions << std::endl;
 
     movVertSqr = movVert * boxDimensions;
-    moveHorzSqr = channels * (boxDimensions + 3);
+    moveHorzSqr = channels * (boxDimensions + 2);
 
     parseBox(i, 0, 0, 2);
 
@@ -90,27 +90,25 @@ IParser::IParser(const char *path): img(stbi_load(path, &width, &height, &channe
 }
 
 void IParser::parseBox(const int &i, const int &x, const int &y, const short &direction) {
-    const bool spawn = hasNumber(i);
-    const Node n = new Node(spawn);
 
-    if (addLocation(x, y, n)) {
-        debug_printCoords(i);
-        Sleep(1000);
+    if (addLocation(x, y, new Node(hasNumber(i)))) {
+        // debug_printCoords(i);
+        // Sleep(1000);
         if (!pixelColorEq(i + moveHorzSqr)) { // East
-            std::cout << "Add " << moveHorzSqr << std::endl;
+            // std::cout << "Add " << moveHorzSqr << std::endl;
             parseBox(i + moveHorzSqr, x+1, y, 0);
         }
         if (!pixelColorEq(i + movVertSqr)) { // South
-            std::cout << "Add " << movVertSqr << std::endl;
+            // std::cout << "Add " << movVertSqr << std::endl;
             parseBox(i + movVertSqr, x, y+1, 1);
         }
         if (!pixelColorEq(i - moveHorzSqr)) { // West
-            std::cout << "Sub " << moveHorzSqr << std::endl;
+            // std::cout << "Sub " << moveHorzSqr << std::endl;
             parseBox(i - moveHorzSqr, x-1, y, 2);
         }
         if (!pixelColorEq(i - movVertSqr)) { // North
-            std::cout << "Sub " << movVertSqr << std::endl;
-            parseBox(i + boxDimensions, x, y-1, 3);
+            // std::cout << "Sub " << movVertSqr << std::endl;
+            parseBox(i - movVertSqr, x, y-1, 3);
         }
     } /* else { // If this square was allready added, to prevent recursing out of control, just continue to end of block
         switch (direction) {
@@ -154,7 +152,7 @@ void IParser::parseBox(const int &i, const int &x, const int &y, const short &di
 }
 
 bool IParser::addLocation(int x, int y, Node n) {
-    std::cout << "COords: (" << x << ", " << y << ")" << std::endl;
+    // std::cout << "COords: (" << x << ", " << y << ")" << std::endl;
     if (!locatorMap.count(x)) {
         std::map<int, Node> leMap;
         leMap.emplace(y, n);
