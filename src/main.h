@@ -19,9 +19,10 @@ struct color {
 
 class Node {
     public:
+    Node();
     Node(const bool &hasNumber);
     private:
-    const bool hasNumber;
+    bool hasNumber;
     char val = '\0';
 };
 
@@ -46,6 +47,8 @@ class IParser {
     int moveHorzSqr;
     int size;
     int boxDimensions;
+    int boxDimensionsScaledVertical;
+    int boxDimensionsScaledHorizontal;
     // Background colors
     unsigned char r;
     unsigned char b;
