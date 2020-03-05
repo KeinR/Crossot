@@ -52,13 +52,13 @@ class IParser {
     unsigned char g;
     // std::map<const int, node> data; // Potential bug: int values aren't kept track of properly, in wich case would need to keep track of switches indiv
     std::map<int, std::map<int, Node>> locatorMap;
-    int locatorMinX;
-    int locatorMaxX;
-    int locatorMinY;
-    int locatorMaxY;
+    int locatorMinX = 0xFFFFFF;
+    int locatorMaxX = -0xFFFFFF;
+    int locatorMinY = 0xFFFFFF;
+    int locatorMaxY = -0xFFFFFF;
     bool addLocation(int x, int y, Node n);
     bool hasNumber(int i);
-    bool pixelColorEq(const int &index);
+    bool inBox(const int &index);
     bool pixelColorEq(const int &index, const int val);
     void debug_printCoords(int i);
 };
