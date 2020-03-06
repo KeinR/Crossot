@@ -3,6 +3,7 @@
 
 #include <map>
 
+#define K_ANSWER_BUFFER_SIZE 50
 #define K_REASONABLE_SKIP 8
 
 // typedef const unsigned char* raw;
@@ -33,7 +34,7 @@ struct answer {
 
 class IParser {
     public:
-    IParser(const char *path);
+    IParser(const char *path, const char *answerPath);
     private:
     void parseBox(const int &i, const int &x, const int &y, const short &direction);
     // private:

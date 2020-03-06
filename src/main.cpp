@@ -16,10 +16,14 @@
 std::ofstream debugFile("debug.log");
 
 int main(int argc, char *argv[]) {
-    IParser parse(argv[1]);
+    if (argc < 3) {
+        std::cout << "Invalid # of arguments" << std::endl;
+        return 1;
+    }
+    IParser parse(argv[1], argv[2]);
 }
 
-IParser::IParser(const char *path): img(stbi_load(path, &width, &height, &channels, 0)) {
+IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, &width, &height, &channels, 0)) {
     if (img == NULL) {
         std::cout << "Error: Failed to load image: " << stbi_failure_reason() << std::endl;
         error e;
@@ -77,6 +81,8 @@ IParser::IParser(const char *path): img(stbi_load(path, &width, &height, &channe
     std::cout << "(" << ((f / channels) % width) << ", " << ((f / channels) / width) << ")" << std::endl;
     for (; pixelColorEq(f, 0xFF); f += movVert);
     f -= movVert;
+    // debug_printCoords(f);
+    i = f - movVert * 3 - channels * 3;
     std::cout << "(" << ((f / channels) % width) << ", " << ((f / channels) / width) << ")" << std::endl;
     boxDimensions = 1;
     for (; pixelColorEq(f -= channels, 0xFF); boxDimensions++);
@@ -92,7 +98,8 @@ IParser::IParser(const char *path): img(stbi_load(path, &width, &height, &channe
     boxDimensionsScaledVertical = movVert * boxDimensions;
     boxDimensionsScaledHorizontal = channels * boxDimensions;
 
-    i += channels * 5;
+    // i += channels * 5;
+    // debug_printCoords(i);
     parseBox(i, 0, 0, 2);
 
     std::cout << "Sequencing complete(?)" << std::endl;
@@ -112,6 +119,46 @@ IParser::IParser(const char *path): img(stbi_load(path, &width, &height, &channe
         }
         std::cout << std::endl;
     }
+
+    std::list<std::string> ans;
+    {
+        std::ifstream answers(answerPath);
+        std::string buff;
+        for (char c; !answers.eof();) {
+            answers.get(c);
+            switch (c) {
+                case ' ':
+                case '\n':
+                case '\r':
+                case ',':
+                    if (buff.length() > 0) {
+                        ans.push_back(buff);
+                        buff.clear();
+                    }
+                    break;
+                default:
+                    buff += c;
+            }
+        }
+        if (buff.length() > 0) {
+            ans.push_back(std::move(buff));
+        }
+        answers.close();
+    }
+
+    std::list<std::string>::iterator unique = ans.begin();
+    for (std::list<std::string>::iterator it = ans.begin(), end = ans.end(); ++it != end;) {
+        if (unique->length() == it->length()) {
+            ++it;
+            if (it == end) {
+                std::cout << "Fuk no match" << std::endl;
+                exit(101);
+            }
+            unique = it;
+        }
+    }
+    std::cout << "Unique esta " << *unique << std::endl;
+    ans.erase(unique);
 }
 
 void IParser::parseBox(const int &i, const int &x, const int &y, const short &direction) {

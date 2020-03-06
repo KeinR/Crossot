@@ -1,0 +1,3 @@
+ETC, NADH, Outer, Phosphate, Two, active, anaerobic, intermembrane, Krebs,
+lactate, link, mitochondrion, oxidative, oxidized, oxygen, protons, pumping, pyruvate, reduction, ribose,
+substrate, synthase, tricarboxylic, water
