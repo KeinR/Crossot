@@ -107,10 +107,23 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
     // const int lengthX = std::abs(locatorMaxX - locatorMinX);
     // const int lengthY = std::abs(locatorMaxY - locatorMinY);
     // int res[lengthX][lengthY];
+    unsigned int number = 1;
+    int refLength = 0;
+    answer ref[totalAns];
     for (int y = locatorMinY; y <= locatorMaxY; y++) {
         for (int x = locatorMinX; x <= locatorMaxX; x++) {
             if (locatorMap.count(x) && locatorMap[x].count(y)) {
-                std::cout << "0";
+                if (locatorMap[x][y]->doesHaveNumber) {
+                    if (number <= 9) {
+                        std::cout << (unsigned char)(number + 48);
+                    } else {
+                        std::cout << (unsigned char)(number + 72);
+                    }
+                    debugFile << "NUMBER: " << number << std::endl;
+                    number++;
+                } else {
+                    std::cout << "0";
+                }
                 // res[x][y] = 1;
             } else {
                 std::cout << " ";
@@ -159,6 +172,9 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
     }
     std::cout << "Unique esta " << *unique << std::endl;
     ans.erase(unique);
+
+    // Abstract resulting data
+
 }
 
 void IParser::parseBox(const int &i, const int &x, const int &y, const short &direction) {
@@ -202,21 +218,9 @@ void IParser::parseBox(const int &i, const int &x, const int &y, const short &di
         // std::cout << "deneid" << std::endl;
     }
     // And well I guess that's the end of it
-
-
-    // if (vertical) {
-    //     std::list<Node> list;
-    //     for (;; i += movVertSqr) {
-    //         if () {
-
-    //         }
-    //     }
-    // } else {
-
-    // }
 }
 
-bool IParser::addLocation(int x, int y, Node n) {
+bool IParser::addLocation(int x, int y, Node *&&n) {
     // std::cout << "COords: (" << x << ", " << y << ")" << std::endl;
     if (x < locatorMinX) {
         locatorMinX = x;
@@ -232,14 +236,16 @@ bool IParser::addLocation(int x, int y, Node n) {
     }
 
     if (!locatorMap.count(x)) {
-        std::map<int, Node> leMap;
+        std::map<int, Node*> leMap;
         leMap.emplace(y, n);
         locatorMap.emplace(x, std::move(leMap));
+        totalAns++;
         return true;
     } else {
-        std::map<int, Node> &leMap = locatorMap[x];
+        std::map<int, Node*> &leMap = locatorMap[x];
         if (!leMap.count(y)) {
             leMap.emplace(y, n);
+            totalAns++;
             return true;
         }
     }
@@ -248,10 +254,53 @@ bool IParser::addLocation(int x, int y, Node n) {
 }
 
 bool IParser::hasNumber(int i) {
-    // std::cout << "Starto" << std::endl;
-    // std::cout << "------------------------------------------" << std::endl;
-    // std::cout << ((i / channels) % width) << ", " << ((i / channels) / width) << std::endl;
-    // std::cout << "------------------------------------------" << std::endl;
+    
+    // Move to bottom right
+    for (; pixelColorEq(i, 0xFF); i += channels) {
+        if (i >= size) {
+            return false;
+        }
+    }
+    i -= channels;
+    for (; pixelColorEq(i, 0xFF); i += movVert) {
+        if (i >= size) {
+            return false;
+        }
+    }
+    i -= movVert;
+
+    // Now move up and see the rise and fall of mount
+    int last = i;
+    for (; pixelColorEq(last, 0xFF); last -= channels) {
+        if (last < 0) {
+            return false;
+        }
+    }
+    last = last % width;
+
+    for (; pixelColorEq(i, 0xFF); i -= movVert) {
+        if (i < 0) {
+            return false;
+        }
+        int f = i;
+        for (; pixelColorEq(f, 0xFF); f -= channels) {
+            if (f < 0) {
+                return false;
+            }
+        }
+        if (f % width != last) {
+            debugFile << channels << std::endl;
+            debugFile << movVert << std::endl;
+            debugFile << "RISE DIFF " << std::abs((f % width) - last) << std::endl;
+            debug_printCoords(f % width);
+            debug_printCoords(last);
+            debugFile << "----------------" << std::endl;
+            return true;
+        }
+    }
+
+    /*
+
     for (;; i -= movVert) {
         if (i < 0) {
             return false;
@@ -298,6 +347,7 @@ bool IParser::hasNumber(int i) {
         }
     }
     // std::cout << "Funisjo" << std::endl;
+    */
     return false;
 }
 
@@ -379,5 +429,9 @@ void IParser::debug_printCoords(int i) {
     debugFile << "(" << ((i / channels) % width) << ", " << ((i / channels) / width) << "), " << i << ", len = " << size << std::endl;
 }
 
-Node::Node(const bool &hasNumber): hasNumber(hasNumber) {
+Node::Node(const bool &hasNumber): doesHaveNumber(hasNumber) {
+    debugFile << "And as it should be, it is set to " << (hasNumber ? "TRUE" : "FALSE") << std::endl;
+}
+
+Node::Node() {
 }
