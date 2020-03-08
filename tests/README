@@ -1,0 +1,8 @@
+Test cases:
+./cross.exe tests/trial1.PNG tests/answers1.txt
+./cross.exe tests/trial2.PNG tests/answers2.txt
+./cross.exe tests/trial3.PNG tests/answers3.txt
+./cross.exe tests/trial4.PNG tests/answers4.txt
+./cross.exe tests/trial5.PNG tests/answers5.txt
+./cross.exe tests/trial6.PNG tests/answers6.txt
+./cross.exe tests/trial7.PNG tests/answers7.txt

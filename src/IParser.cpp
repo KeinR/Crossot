@@ -12,7 +12,6 @@
 #include "IParser.h"
 
 #define K_REASONABLE_SKIP 8
-#define C_CAN_BE_HORIZONTAL ((char)(hasNumber(i) | ((inBox(i + moveHorzSqr) && !inBox(i - moveHorzSqr)) << 1)))
 
 IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, &width, &height, &channels, 0)) {
     if (img == NULL) {
@@ -73,7 +72,7 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
     for (; pixelColorEq(f, 0xFF); f += movVert);
     f -= movVert;
     // debug_printCoords(f);
-    i = f - movVert * 3 - channels * 3;
+    i = f - movVert * 2 - channels * 2; // <-- Tweak as needed
     std::cout << "(" << ((f / channels) % width) << ", " << ((f / channels) / width) << ")" << std::endl;
     boxDimensions = 1;
     for (; pixelColorEq(f -= channels, 0xFF); boxDimensions++);
@@ -108,32 +107,39 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
                     }
                     debugFile << "NUMBER: " << number << std::endl;
 
+                    std::map<int, Node> &mapXCache = locatorMap[x];
+
                     seqTemp.emplace_back();
                     question &an = seqTemp.back();
                     an.number = number;
-                    Node &n = locatorMap[x][y];
+                    Node &n = mapXCache[y];
                     an.body.push_back(&n);
 
-                    if (n.isHorizontal()) {
+                    const bool isHorizontal = 
+                        !(locatorMap.count(x-1) && locatorMap[x-1].count(y)) &&
+                        locatorMap.count(x+1) && locatorMap[x+1].count(y)
+                    ;
+                    const bool isVertical = !mapXCache.count(y-1) && mapXCache.count(y+1);
+
+                    if (isHorizontal) {
                         for (int tx = x+1; locatorMap.count(tx) && locatorMap[tx].count(y); tx++) {
                             an.body.push_back(&locatorMap[tx][y]);
                         }
-                        if (n.isVertical()) {
+                        if (isVertical) {
                             seqTemp.emplace_back();
                             question &ana = seqTemp.back();
                             ana.number = -number; // negation indicates vertical
                             ana.body.push_back(&n);
-                            std::map<int, Node> &mapXCache = locatorMap[x];
                             for (int ty = y+1; mapXCache.count(ty); ty++) {
                                 ana.body.push_back(&locatorMap[x][ty]);
                             }
                         }
                     } else {
-                        std::map<int, Node> &mapXCache = locatorMap[x];
                         for (int ty = y+1; mapXCache.count(ty); ty++) {
                             an.body.push_back(&locatorMap[x][ty]);
                         }
                     }
+                    number++;
                 } else {
                     std::cout << "0";
                 }
@@ -277,14 +283,22 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
     */
 }
 
-void IParser::parseBox(const int &i, const int &x, const int &y, const char &direction) {
+void IParser::parseBox(int i, const int &x, const int &y, const char &direction) {
 
     // std::cout << "Erm..." << std::endl;
     if (i < size && i >= 0 && addLocation(x, y, i)) {
+
+        // Reposition to account for unpredictable box size fluctuations
+        for (; pixelColorEq(i, 0xFF); i += channels);
+        i -= channels * 3;
+        for (; pixelColorEq(i, 0xFF); i += movVert);
+        i -= movVert * 3;
+
         debug_printCoords(i);
         // Sleep(1000);
         // std::cout << "Hello?" << std::endl;
-        debugFile << "Pricess A" << std::endl;
+        debugFile << "Pricess A:" << std::endl;
+        debug_printCoords(i - moveHorzSqr);
         if (inBox(i + moveHorzSqr)) { // East
             // std::cout << "Add " << moveHorzSqr << std::endl;
             debugFile << "Allowing EAST with i = " << (i + moveHorzSqr) << std::endl;
@@ -298,13 +312,15 @@ void IParser::parseBox(const int &i, const int &x, const int &y, const char &dir
             // std::cout << "MOV SOUTH" << std::endl;
             parseBox(i + movVertSqr, x, y+1, 1);
         }
-        debugFile << "Pricess C" << std::endl;
+        debugFile << "Pricess C:" << std::endl;
+        debug_printCoords(i - moveHorzSqr);
         if (inBox(i - moveHorzSqr)) { // West
             // std::cout << "Sub " << moveHorzSqr << std::endl;
             debugFile << "Allowing WEST with i = " << (i - moveHorzSqr) << std::endl;
             parseBox(i - moveHorzSqr, x-1, y, 2);
         }
-        debugFile << "Pricess D" << std::endl;
+        debugFile << "Pricess D:" << std::endl;
+        debug_printCoords(i - movVertSqr);
         if (inBox(i - movVertSqr)) { // North
             // std::cout << "Sub " << movVertSqr << std::endl;
             debugFile << "Allowing NORTH with i = " << (i - movVertSqr) << std::endl;
@@ -401,53 +417,48 @@ bool IParser::hasNumber(int i) {
     return false;
 }
 
-bool IParser::inBox(const int &index) {
+bool IParser::inBox(int index) {
     if (index < 0 || index >= size) {
+        debugFile << ">> end Fillet" << std::endl;
         return false;
     }
     // std::cout << "Run" << std::endl;
     // std::cout << "1" << std::endl;
     if (!pixelColorEq(index, 0xFF)) {
-        debugFile << "Was I wrong?" << std::endl;
+        debugFile << ">> end \"Was I wrong?\"" << std::endl;
         debug_printCoords(index);
         return false;
     }
-    for (int i = index;; i += movVert) {
-        if (i >= size) {
-            debugFile << ">> end 0" << std::endl;
+
+    for (int iter = 0; pixelColorEq(index, 0xFF);) {
+        iter++;
+        index += channels;
+        if (iter > boxDimensions || index > size) {
+            debugFile << ">> end WA-" << (iter > boxDimensions) << std::endl;
             return false;
-        } else if (!pixelColorEq(i, 0xFF)) {
-            if (std::abs(index - i) > boxDimensionsScaledVertical) {
-                // std::cout << "Return" << std::endl;
-                debugFile << ">> end A, " << std::abs(index - i) << std::endl;
-                return false;
-            } else {
-                break;
-            }
         }
     }
+    index -= channels;
+    for (int iter = 0; pixelColorEq(index, 0xFF);) {
+        iter++;
+        index += movVert;
+        if (iter > boxDimensions || index > size) {
+            debugFile << ">> end WB-" << (iter > boxDimensions) << std::endl;
+            return false;
+        }
+    }
+    index -= movVert;
+
     // std::cout << "2" << std::endl;
-    for (int i = index;; i -= movVert) {
-        if (i < 0) {
-            debugFile << ">> end B" << std::endl;
+    for (int i = index, iter = -2;; i -= movVert) {
+        iter++;
+        if (iter > boxDimensions || i < 0) {
+            debugFile << ">> end B-" << (iter > boxDimensions) << ", " << iter << std::endl;
             return false;
         } else if (!pixelColorEq(i, 0xFF)) {
-            if (std::abs(index - i) > boxDimensionsScaledVertical) {
-                debugFile << ">> end C" << std::endl;
-                return false;
-            } else {
-                break;
-            }
-        }
-    }
-    // std::cout << "3" << std::endl;
-    for (int i = index;; i += channels) {
-        if (i >= size) {
-            debugFile << ">> end D" << std::endl;
-            return false;
-        } else if (!pixelColorEq(i, 0xFF)) {
-            if (std::abs(index - i) > boxDimensionsScaledHorizontal) {
-                debugFile << ">> end E" << std::endl;
+            const int hei = std::abs(index - i);
+            if (hei > boxDimensionsScaledVertical+movVert*2 || hei < boxDimensionsScaledVertical-movVert*2) {
+                debugFile << ">> end C-" << (hei > boxDimensionsScaledVertical) << ", " << ((hei / channels) / width) << std::endl;
                 return false;
             } else {
                 break;
@@ -455,13 +466,15 @@ bool IParser::inBox(const int &index) {
         }
     }
     // std::cout << "4" << std::endl;
-    for (int i = index;; i -= channels) {
-        if (i < 0) {
-            debugFile << ">> end F" << std::endl;
+    for (int i = index, iter = -2;; i -= channels) {
+        iter++;
+        if (iter > boxDimensions || i < 0) {
+            debugFile << ">> end F-" << (iter > boxDimensions) << std::endl;
             return false;
         } else if (!pixelColorEq(i, 0xFF)) {
-            if (std::abs(index - i) > boxDimensionsScaledHorizontal) {
-                debugFile << ">> end G" << std::endl;
+            const int wid = std::abs(index - i);
+            if (wid > boxDimensionsScaledHorizontal+channels*2 || wid < boxDimensionsScaledHorizontal-channels*2) {
+                debugFile << ">> end G-" << (wid > boxDimensionsScaledHorizontal) << std::endl;
                 return false;
             } else {
                 break;

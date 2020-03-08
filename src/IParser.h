@@ -14,7 +14,7 @@ class IParser {
     public:
     IParser(const char *path, const char *answerPath);
     private:
-    void parseBox(const int &i, const int &x, const int &y, const char &direction);
+    void parseBox(int i, const int &x, const int &y, const char &direction);
     const unsigned char *const &img;
     int width;
     int height;
@@ -39,7 +39,7 @@ class IParser {
     int totalAns = 0;
     bool addLocation(int x, int y, const int &i);
     bool hasNumber(int i);
-    bool inBox(const int &index);
+    bool inBox(int index);
     bool pixelColorEq(const int &index, const int val);
     void debug_printCoords(int i);
     // two bits, 01 vertical, 11 horizontal, 00 not a starter node
