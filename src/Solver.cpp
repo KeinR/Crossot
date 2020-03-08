@@ -22,9 +22,9 @@ void Solver::solve() {
 bool Solver::rec(int id) {
     id++;
     // Find if there's a unique
-    const int index = getIndexUniqueAns();
-    std::cout << "Index unique: " << index << std::endl;
-    if (index == -1 || true) {
+    // const int index = getIndexUniqueAns();
+    // std::cout << "Index unique: " << index << std::endl;
+    if (/*index == -1 || */true) {
 
         int indexMost = -1;
         for (int mostMatch = -1, i = 0; i < seqLength; i++) {
@@ -44,11 +44,13 @@ bool Solver::rec(int id) {
         }
 
         if (indexMost == -1) {
+            std::cout << "True" << std::endl;
             return true;
         }
 
         question &ques = seq[indexMost];
         ques.used = true;
+        std::cout << "Select " << ques.number << std::endl;
         const int targetLength = ques.body.size();
         for (int i = 0; i < ans.size(); i++) {
             if (!ans[i].used && ans[i].value.length() == targetLength) {
@@ -66,6 +68,7 @@ bool Solver::rec(int id) {
                         }
                     }
                     if (match) {
+                        ans[i].used = true;
                         for (int c = 0; c < targetLength; c++) {
                             Node *&n = ques.body[c];
                             if (n->changeId == 0) {
@@ -73,7 +76,9 @@ bool Solver::rec(int id) {
                                 n->changeId = id;
                             }
                         }
+                        std::cout << "#" << ques.number << " as " << val << std::endl;
                         if (rec(id)) {
+                            std::cout << "Last done" << std::endl;
                             return true;
                         }
                         // Didn't work :(
@@ -82,12 +87,14 @@ bool Solver::rec(int id) {
                             Node *&n = ques.body[c];
                             if (n->changeId == id) {
                                 n->changeId = 0;
+                                n->val = n->changeId + 0x30;
                             }
                         }
-                        ques.used = false;
+                        ans[i].used = false;
                     }
                 }
                 ques.used = false;
+                std::cout << "--return--" << std::endl;
                 return false; // The last recursion messed up, better let them know...
             }
         }
@@ -97,23 +104,23 @@ bool Solver::rec(int id) {
         exit(1);
 
     } else {
-        answer &a = ans[index];
-        a.used = true;
-        bool done = true;
-        for (int i = 0; i < seqLength; i++) {
-            question &q = *(seq+i);
-            if (q.used) {
-                done = false;
-            } else if (q.body.size() == a.value.length()) {
-                for (int i = 0; i < q.body.size(); i++) {
-                    q.body[i]->val = a.value[i];
-                    q.body[i]->changeId = id;
-                }
-                q.used = true;
-                break;
-            }
-        }
-        return done ? true : rec(id);
+        // answer &a = ans[index];
+        // a.used = true;
+        // bool done = true;
+        // for (int i = 0; i < seqLength; i++) {
+        //     question &q = *(seq+i);
+        //     if (q.used) {
+        //         done = false;
+        //     } else if (q.body.size() == a.value.length()) {
+        //         for (int i = 0; i < q.body.size(); i++) {
+        //             q.body[i]->val = a.value[i];
+        //             q.body[i]->changeId = id;
+        //         }
+        //         q.used = true;
+        //         break;
+        //     }
+        // }
+        // return done ? true : rec(id);
     }
 }
 

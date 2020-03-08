@@ -107,11 +107,10 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
                         std::cout << (unsigned char)(number + 72);
                     }
                     debugFile << "NUMBER: " << number << std::endl;
-                    number++;
 
                     seqTemp.emplace_back();
                     question &an = seqTemp.back();
-                    an.number = number;
+                    an.number = number++;
                     Node &n = locatorMap[x][y];
                     an.body.push_back(&n);
                     if (n.isHorizontal()) {
@@ -119,6 +118,7 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
                             an.body.push_back(&locatorMap[tx][y]);
                         }
                     } else {
+                    // if (n.isVertical()) {
                         std::map<int, Node> &mapXCache = locatorMap[x];
                         for (int ty = y+1; mapXCache.count(ty); ty++) {
                             an.body.push_back(&locatorMap[x][ty]);
@@ -158,6 +158,10 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
         int length = 0xFFFFFF;
         for (char c; !answers.eof();) {
             answers.get(c);
+            // Convert to lowercase
+            if (c >= 'A' && c <= 'Z') {
+                c += 0x20;
+            }
             switch (c) {
                 case ' ':
                 case '\n':
@@ -179,7 +183,7 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
         if (buff.length() > 0) {
             temp.push_back(std::move(buff));
         }
-        // Insertion sort, by length
+        // Insertion sort, by length; best, O(n); worst, O(30n); most of the time it's like O(13n) or so
         for (; temp.size() != 0; length++) {
             for (std::list<std::string>::iterator it = temp.begin(); it != temp.end();) {
                 if (it->length() == length) {
@@ -221,6 +225,17 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
 
     Solver sol(ans, seq, seqLength);
     sol.solve();
+
+    for (int y = locatorMinY; y <= locatorMaxY; y++) {
+        for (int x = locatorMinX; x <= locatorMaxX; x++) {
+            if (locatorMap.count(x) && locatorMap[x].count(y)) {
+                std::cout << locatorMap[x][y].val;
+            } else {
+                std::cout << " ";
+            }
+        }
+        std::cout << std::endl;
+    }
 
     /*
     std::list<std::string>::iterator unique = ans.begin();
@@ -378,6 +393,9 @@ bool IParser::hasNumber(int i) {
 }
 
 bool IParser::inBox(const int &index) {
+    if (index < 0 || index >= size) {
+        return false;
+    }
     // std::cout << "Run" << std::endl;
     // std::cout << "1" << std::endl;
     if (!pixelColorEq(index, 0xFF)) {
@@ -456,5 +474,9 @@ void IParser::debug_printCoords(int i) {
 }
 
 char IParser::getCanHorizontal(const int &i) {
-    return (char)(hasNumber(i) | ((inBox(i + moveHorzSqr) && !inBox(i - moveHorzSqr)) << 1));
+    return (char)(
+        hasNumber(i) |
+        ((inBox(i + moveHorzSqr) && !inBox(i - moveHorzSqr)) << 1) |
+        ((inBox(i + movVertSqr) && !inBox(i - movVertSqr)) << 2)
+    );
 }

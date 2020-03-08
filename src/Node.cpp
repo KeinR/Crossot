@@ -15,6 +15,9 @@ bool Node::hasLeNumber() {
 bool Node::isHorizontal() {
     return doesHaveNumber & 0x2;
 }
+bool Node::isVertical() {
+    return doesHaveNumber & 0x4;
+}
 
 void Node::addParent(std::vector<Node*> &p) {
     parents[parentNum++] = &p;

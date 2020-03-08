@@ -8,9 +8,10 @@ class Node {
     Node();
     Node(const char &hasNumber);
     int changeId = 0; // Recursion ID of the one that modded val
-    char val;
+    char val = '#';
     bool hasLeNumber();
     bool isHorizontal();
+    bool isVertical();
     void addParent(std::vector<Node*> &p);
     bool hasTwoParents();
     // Reference or pointer? We'll see...
