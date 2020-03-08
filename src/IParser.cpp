@@ -110,15 +110,25 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
 
                     seqTemp.emplace_back();
                     question &an = seqTemp.back();
-                    an.number = number++;
+                    an.number = number;
                     Node &n = locatorMap[x][y];
                     an.body.push_back(&n);
+
                     if (n.isHorizontal()) {
                         for (int tx = x+1; locatorMap.count(tx) && locatorMap[tx].count(y); tx++) {
                             an.body.push_back(&locatorMap[tx][y]);
                         }
+                        if (n.isVertical()) {
+                            seqTemp.emplace_back();
+                            question &ana = seqTemp.back();
+                            ana.number = -number; // negation indicates vertical
+                            ana.body.push_back(&n);
+                            std::map<int, Node> &mapXCache = locatorMap[x];
+                            for (int ty = y+1; mapXCache.count(ty); ty++) {
+                                ana.body.push_back(&locatorMap[x][ty]);
+                            }
+                        }
                     } else {
-                    // if (n.isVertical()) {
                         std::map<int, Node> &mapXCache = locatorMap[x];
                         for (int ty = y+1; mapXCache.count(ty); ty++) {
                             an.body.push_back(&locatorMap[x][ty]);
@@ -127,7 +137,6 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
                 } else {
                     std::cout << "0";
                 }
-                // res[x][y] = 1;
             } else {
                 std::cout << " ";
                 // res[x][y] = 0;
