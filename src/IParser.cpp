@@ -5,10 +5,14 @@
 #include <vector>
 
 #include "Node.h"
+#include "Solver.h"
 #include "main.h"
 #include "../external/stb_image.h"
 
 #include "IParser.h"
+
+#define K_REASONABLE_SKIP 8
+#define C_CAN_BE_HORIZONTAL ((char)(hasNumber(i) | ((inBox(i + moveHorzSqr) && !inBox(i - moveHorzSqr)) << 1)))
 
 IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, &width, &height, &channels, 0)) {
     if (img == NULL) {
@@ -91,14 +95,12 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
 
     std::cout << "Sequencing complete(?)" << std::endl;
     std::cout << "Printing>..." << std::endl;
-    unsigned int number = 1; // TEMP
-    std::vector<Node*> seq[totalAns]; // INT
-    int seqLength = 0; // INT
-    // std::vector<Node> *temp;
+    int number = 1;
+    std::list<question> seqTemp;
     for (int y = locatorMinY; y <= locatorMaxY; y++) {
         for (int x = locatorMinX; x <= locatorMaxX; x++) {
             if (locatorMap.count(x) && locatorMap[x].count(y)) {
-                if (locatorMap[x][y]->hasLeNumber()) {
+                if (locatorMap[x][y].hasLeNumber()) {
                     if (number <= 9) {
                         std::cout << (unsigned char)(number + 48);
                     } else {
@@ -107,18 +109,19 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
                     debugFile << "NUMBER: " << number << std::endl;
                     number++;
 
-                    // Should only seg fault if search code gets funky,
-                    // or if I'm using std::move wrong
-                    std::vector<Node*> &vec = seq[seqLength++];
-                    vec.push_back(locatorMap[x][y]);
-                    if (locatorMap[x][y]->isHorizonal()) {
+                    seqTemp.emplace_back();
+                    question &an = seqTemp.back();
+                    an.number = number;
+                    Node &n = locatorMap[x][y];
+                    an.body.push_back(&n);
+                    if (n.isHorizontal()) {
                         for (int tx = x+1; locatorMap.count(tx) && locatorMap[tx].count(y); tx++) {
-                            vec.push_back(locatorMap[tx][y]);
+                            an.body.push_back(&locatorMap[tx][y]);
                         }
                     } else {
-                        std::map<int, Node*> &mapXCache = locatorMap[x];
+                        std::map<int, Node> &mapXCache = locatorMap[x];
                         for (int ty = y+1; mapXCache.count(ty); ty++) {
-                            vec.push_back(locatorMap[x][ty]);
+                            an.body.push_back(&locatorMap[x][ty]);
                         }
                     }
                 } else {
@@ -132,8 +135,21 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
         }
         std::cout << std::endl;
     }
+    // Insertion sort, by length
+    question seq[seqTemp.size()];
+    int seqLength = 0;
+    for (int length = 1; seqTemp.size() != 0; length++) {
+        for (std::list<question>::iterator it = seqTemp.begin(); it != seqTemp.end();) {
+            if (it->body.size() == length) {
+                seq[seqLength++] = std::move(*it);
+                it = seqTemp.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    }
 
-    std::list<std::string> ans;
+    std::vector<answer> ans;
     {
         std::list<std::string> temp;
         std::ifstream answers(answerPath);
@@ -163,22 +179,48 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
         if (buff.length() > 0) {
             temp.push_back(std::move(buff));
         }
-        // Insertion sort, by size
+        // Insertion sort, by length
         for (; temp.size() != 0; length++) {
             for (std::list<std::string>::iterator it = temp.begin(); it != temp.end();) {
                 if (it->length() == length) {
-                    ans.push_back(std::move(*it));
+                    ans.push_back(answer(std::move(*it)));
                     it = temp.erase(it);
                 } else {
                     ++it;
                 }
             }
         }
+    }
 
-        for (std::string &s : ans) {
-            std::cout << s << std::endl;
+    // Debug
+    for (answer &s : ans) {
+        std::cout << s.value << std::endl;
+    }
+    for (int i = 0; i < seqLength; i++) {
+        std::cout << "#" << seq[i].number << " is len " << seq[i].body.size() << std::endl;
+    }
+
+    // Pre-checks, just to verify correct answer set
+    for (int i = 0; i < seqLength; i++) {
+        std::vector<Node*> &vec = seq[i].body;
+        bool good = false;
+        for (answer &s : ans) {
+            if (!s.used && s.value.length() == vec.size()) {
+                s.used = good = true;
+                break;
+            }
+        }
+        if (!good) {
+            std::cout << "ERROR: question #" << (i+1) << " without possible answer" << std::endl;
+            exit(1);
         }
     }
+    for (answer &s : ans) {
+        s.used = false;
+    }
+
+    Solver sol(ans, seq, seqLength);
+    sol.solve();
 
     /*
     std::list<std::string>::iterator unique = ans.begin();
@@ -211,10 +253,10 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
     */
 }
 
-void IParser::parseBox(const int &i, const int &x, const int &y, const short &direction) {
+void IParser::parseBox(const int &i, const int &x, const int &y, const char &direction) {
 
     // std::cout << "Erm..." << std::endl;
-    if (i < size && i >= 0 && addLocation(x, y, new Node((char)(hasNumber(i) | (inBox(i + moveHorzSqr) << 1))))) {
+    if (i < size && i >= 0 && addLocation(x, y, i)) {
         debug_printCoords(i);
         // Sleep(1000);
         // std::cout << "Hello?" << std::endl;
@@ -254,7 +296,7 @@ void IParser::parseBox(const int &i, const int &x, const int &y, const short &di
     // And well I guess that's the end of it
 }
 
-bool IParser::addLocation(int x, int y, Node *&&n) {
+bool IParser::addLocation(int x, int y, const int &i) {
     // std::cout << "COords: (" << x << ", " << y << ")" << std::endl;
     if (x < locatorMinX) {
         locatorMinX = x;
@@ -270,15 +312,15 @@ bool IParser::addLocation(int x, int y, Node *&&n) {
     }
 
     if (!locatorMap.count(x)) {
-        std::map<int, Node*> leMap;
-        leMap.emplace(y, n);
-        locatorMap.emplace(x, std::move(leMap));
+        std::map<int, Node> leMap;
+        leMap.emplace(std::move(y), Node(getCanHorizontal(i)));
+        locatorMap.emplace(std::move(x), std::move(leMap));
         totalAns++;
         return true;
     } else {
-        std::map<int, Node*> &leMap = locatorMap[x];
+        std::map<int, Node> &leMap = locatorMap[std::move(x)];
         if (!leMap.count(y)) {
-            leMap.emplace(y, n);
+            leMap.emplace(std::move(y), Node(getCanHorizontal(i)));
             totalAns++;
             return true;
         }
@@ -411,4 +453,8 @@ bool IParser::pixelColorEq(const int &index, const int val) {
 
 void IParser::debug_printCoords(int i) {
     debugFile << "(" << ((i / channels) % width) << ", " << ((i / channels) / width) << "), " << i << ", len = " << size << std::endl;
+}
+
+char IParser::getCanHorizontal(const int &i) {
+    return (char)(hasNumber(i) | ((inBox(i + moveHorzSqr) && !inBox(i - moveHorzSqr)) << 1));
 }
