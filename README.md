@@ -11,7 +11,7 @@ with a space ` ` carrage return `\r` newline `\n` or comma `,`, and any order an
 Tested & suceeded with **20** different crosswords (see `./tests`) of ~46 total on the site (from when I counted), that's ~43% tested... Which I think is enough to prove its effectiveness.
 
 ### *Limitations:*
-- For esoteric reasons¹, screenshots must be perfect- at least for the top, only the crossword and it's UNOFORM boarder must be visable; see `./tests` for examples.
+- For esoteric reasons¹, screenshots must be perfect- at least for the top, only the crossword and it's UNIFORM boarder must be visable; see `./tests` for examples.
 
 ### *Motivation:*
 Just kinda' felt like it.

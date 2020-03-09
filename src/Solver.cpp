@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "Solver.h"
+#include "main.h"
 
 answer::answer() {
 }
@@ -16,6 +17,7 @@ ans(ans), seq(seq), seqLength(seqLength) {
 void Solver::solve() {
     if (!rec(0)) {
         std::cout << "Can't do it I'm afraid..." << std::endl;
+        exit(1);
     }
 }
 
@@ -44,13 +46,13 @@ bool Solver::rec(int id) {
         }
 
         if (indexMost == -1) {
-            std::cout << "True" << std::endl;
+            debugFile << "True" << std::endl;
             return true;
         }
 
         question &ques = seq[indexMost];
         ques.used = true;
-        std::cout << "Select " << ques.number << std::endl;
+        debugFile << "Select " << ques.number << std::endl;
         const int targetLength = ques.body.size();
         for (int i = 0; i < ans.size(); i++) {
             if (!ans[i].used && ans[i].value.length() == targetLength) {
@@ -76,9 +78,9 @@ bool Solver::rec(int id) {
                                 n->changeId = id;
                             }
                         }
-                        std::cout << "#" << ques.number << " as " << val << std::endl;
+                        debugFile << "#" << ques.number << " as " << val << std::endl;
                         if (rec(id)) {
-                            std::cout << "Last done" << std::endl;
+                            debugFile << "Last done" << std::endl;
                             return true;
                         }
                         // Didn't work :(
@@ -94,13 +96,13 @@ bool Solver::rec(int id) {
                     }
                 }
                 ques.used = false;
-                std::cout << "--return--" << std::endl;
+                debugFile << "--return--" << std::endl;
                 return false; // The last recursion messed up, better let them know...
             }
         }
 
         // Welp
-        std::cout << "CRITICAL ERROR: Answers depleated, yet all questions not filled" << std::endl;
+        debugFile << "CRITICAL ERROR: Answers depleated, yet all questions not filled" << std::endl;
         exit(1);
 
     } else {

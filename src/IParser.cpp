@@ -32,55 +32,52 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
     b = img[1];
     g = img[2];
 
-    std::cout << movVert << std::endl;
-    std::cout << movVertSqr << std::endl;
+    debugFile << movVert << std::endl;
+    debugFile << movVertSqr << std::endl;
 
     // Ignores alpha
 
-    std::cout << "Width == " << width << std::endl;
-    std::cout << "Height == " << height << std::endl;
-    std::cout << "Size == " << size << std::endl;
+    debugFile << "Width == " << width << std::endl;
+    debugFile << "Height == " << height << std::endl;
+    debugFile << "Size == " << size << std::endl;
 
-    std::cout << "Channles " << channels << std::endl;
+    debugFile << "Channles " << channels << std::endl;
 
-    std::cout << "BG = " << (int)img[0] << ", " << (int)img[1] << ", " << (int)img[2] << std::endl;
+    debugFile << "BG = " << (int)img[0] << ", " << (int)img[1] << ", " << (int)img[2] << std::endl;
 
 
     int i = channels;
     // Find first box and determine box size
     for (; i+channelsM1 < size; i += channels) {
         if (img[i] != r || img[i+1] != b || img[i+2] != g) {
-            // std::cout << "Yes" << std::endl;
-            // std::cout << (i / channels) << std::endl;
-            std::cout << "+++" << std::endl;
-            std::cout << ((i / channels) % width) << ", " << ((i / channels) / width) << std::endl;
+            debugFile << "+++" << std::endl;
+            debugFile << ((i / channels) % width) << ", " << ((i / channels) / width) << std::endl;
             i += K_REASONABLE_SKIP * channels;
             i += movVert * K_REASONABLE_SKIP;
-            std::cout << ((i / channels) % width) << ", " << ((i / channels) / width) << std::endl;
-            std::cout << "+++" << std::endl;
+            debugFile << ((i / channels) % width) << ", " << ((i / channels) / width) << std::endl;
+            debugFile << "+++" << std::endl;
             break;
         }
     }
 
-    std::cout << "------------------------------------------" << std::endl;
+    debugFile << "------------------------------------------" << std::endl;
     // Find box size
     int f = i;
-    std::cout << "(" << ((f / channels) % width) << ", " << ((f / channels) / width) << ")" << std::endl;
+    debugFile << "(" << ((f / channels) % width) << ", " << ((f / channels) / width) << ")" << std::endl;
     for (; pixelColorEq(f, 0xFF); f += channels);
     f -= channels;
-    std::cout << "(" << ((f / channels) % width) << ", " << ((f / channels) / width) << ")" << std::endl;
+    debugFile << "(" << ((f / channels) % width) << ", " << ((f / channels) / width) << ")" << std::endl;
     for (; pixelColorEq(f, 0xFF); f += movVert);
     f -= movVert;
-    // debug_printCoords(f);
     i = f - movVert * 2 - channels * 2; // <-- Tweak as needed
-    std::cout << "(" << ((f / channels) % width) << ", " << ((f / channels) / width) << ")" << std::endl;
+    debugFile << "(" << ((f / channels) % width) << ", " << ((f / channels) / width) << ")" << std::endl;
     boxDimensions = 1;
     for (; pixelColorEq(f -= channels, 0xFF); boxDimensions++);
 
-    std::cout << "(" << ((f / channels) % width) << ", " << ((f / channels) / width) << ")" << std::endl;
-    std::cout << "------------------------------------------" << std::endl;
+    debugFile << "(" << ((f / channels) % width) << ", " << ((f / channels) / width) << ")" << std::endl;
+    debugFile << "------------------------------------------" << std::endl;
 
-    std::cout << "DIMENSIONS: " << boxDimensions << std::endl;
+    debugFile << "DIMENSIONS: " << boxDimensions << std::endl;
 
     movVertSqr = movVert * (boxDimensions + 2);
     moveHorzSqr = channels * (boxDimensions + 2);
@@ -88,12 +85,10 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
     boxDimensionsScaledVertical = movVert * boxDimensions;
     boxDimensionsScaledHorizontal = channels * boxDimensions;
 
-    // i += channels * 5;
-    // debug_printCoords(i);
     parseBox(i, 0, 0, 2);
 
-    std::cout << "Sequencing complete(?)" << std::endl;
-    std::cout << "Printing>..." << std::endl;
+    debugFile << "Sequencing complete(?)" << std::endl;
+    debugFile << "Printing>..." << std::endl;
     int number = 1;
     std::list<question> seqTemp;
     for (int y = locatorMinY; y <= locatorMaxY; y++) {
@@ -101,9 +96,9 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
             if (locatorMap.count(x) && locatorMap[x].count(y)) {
                 if (locatorMap[x][y].hasLeNumber()) {
                     if (number <= 9) {
-                        std::cout << (unsigned char)(number + 48);
+                        debugFile << (unsigned char)(number + 48);
                     } else {
-                        std::cout << (unsigned char)(number + 72);
+                        debugFile << (unsigned char)(number + 72);
                     }
                     debugFile << "NUMBER: " << number << std::endl;
 
@@ -141,14 +136,13 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
                     }
                     number++;
                 } else {
-                    std::cout << "0";
+                    debugFile << "0";
                 }
             } else {
-                std::cout << " ";
-                // res[x][y] = 0;
+                debugFile << " ";
             }
         }
-        std::cout << std::endl;
+        debugFile << std::endl;
     }
     // Insertion sort, by length
     question seq[seqTemp.size()];
@@ -213,10 +207,10 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
 
     // Debug
     for (answer &s : ans) {
-        std::cout << s.value << std::endl;
+        debugFile << s.value << std::endl;
     }
     for (int i = 0; i < seqLength; i++) {
-        std::cout << "#" << seq[i].number << " is len " << seq[i].body.size() << std::endl;
+        debugFile << "#" << seq[i].number << " is len " << seq[i].body.size() << std::endl;
     }
 
     // Pre-checks, just to verify correct answer set
@@ -251,41 +245,10 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
         }
         std::cout << std::endl;
     }
-
-    /*
-    std::list<std::string>::iterator unique = ans.begin();
-    std::list<std::string>::iterator bEnd = ans.end();
-    bEnd--;
-    for (std::list<std::string>::iterator it = ans.begin(), start = ans.begin(), end = ans.end(); it != end;) {
-        const int length = it->length();
-        if (it != bEnd) {
-            ++it;
-            if (length == it->length()) {
-                // Skip dupes, obv not uniq
-                while (++it != end && length == it->length());
-                continue;
-            }
-            --it;
-        }
-        unique = it;
-        break;
-    }
-    std::cout << "Unique esta " << *unique << std::endl;
-    // ans.erase(unique);
-
-    // Abstract resulting data
-
-    for (int i = 0; i < seqLength; i++) {
-        if (unique->length() == seq[i].size()) {
-            std::cout << "Found eq, q# " << (i+1) << std::endl;
-        }
-    }
-    */
 }
 
 void IParser::parseBox(int i, const int &x, const int &y, const char &direction) {
 
-    // std::cout << "Erm..." << std::endl;
     if (i < size && i >= 0 && addLocation(x, y, i)) {
 
         // Reposition to account for unpredictable box size fluctuations
@@ -295,49 +258,37 @@ void IParser::parseBox(int i, const int &x, const int &y, const char &direction)
         i -= movVert * 3;
 
         debug_printCoords(i);
-        // Sleep(1000);
-        // std::cout << "Hello?" << std::endl;
         debugFile << "Pricess A:" << std::endl;
         debug_printCoords(i - moveHorzSqr);
         if (inBox(i + moveHorzSqr)) { // East
-            // std::cout << "Add " << moveHorzSqr << std::endl;
             debugFile << "Allowing EAST with i = " << (i + moveHorzSqr) << std::endl;
             parseBox(i + moveHorzSqr, x+1, y, 0);
         }
         debugFile << "Pricess B:" << std::endl;
         debug_printCoords(i + movVertSqr);
         if (inBox(i + movVertSqr)) { // South
-            // std::cout << "Add " << movVertSqr << std::endl;
             debugFile << "Allowing SOUTH with i = " << (i + movVertSqr) << std::endl;
-            // std::cout << "MOV SOUTH" << std::endl;
             parseBox(i + movVertSqr, x, y+1, 1);
         }
         debugFile << "Pricess C:" << std::endl;
         debug_printCoords(i - moveHorzSqr);
         if (inBox(i - moveHorzSqr)) { // West
-            // std::cout << "Sub " << moveHorzSqr << std::endl;
             debugFile << "Allowing WEST with i = " << (i - moveHorzSqr) << std::endl;
             parseBox(i - moveHorzSqr, x-1, y, 2);
         }
         debugFile << "Pricess D:" << std::endl;
         debug_printCoords(i - movVertSqr);
         if (inBox(i - movVertSqr)) { // North
-            // std::cout << "Sub " << movVertSqr << std::endl;
             debugFile << "Allowing NORTH with i = " << (i - movVertSqr) << std::endl;
             parseBox(i - movVertSqr, x, y-1, 3);
         }
     } else {
         debugFile << "DENIED..." << std::endl;
-        // debugFile << "DENIED, i=" << i << std::endl;
-        // debug_printCoords(i);
-        // debugFile << "---" << std::endl;
-        // std::cout << "deneid" << std::endl;
     }
     // And well I guess that's the end of it
 }
 
 bool IParser::addLocation(int x, int y, const int &i) {
-    // std::cout << "COords: (" << x << ", " << y << ")" << std::endl;
     if (x < locatorMinX) {
         locatorMinX = x;
     }
@@ -422,8 +373,6 @@ bool IParser::inBox(int index) {
         debugFile << ">> end Fillet" << std::endl;
         return false;
     }
-    // std::cout << "Run" << std::endl;
-    // std::cout << "1" << std::endl;
     if (!pixelColorEq(index, 0xFF)) {
         debugFile << ">> end \"Was I wrong?\"" << std::endl;
         debug_printCoords(index);
@@ -449,7 +398,6 @@ bool IParser::inBox(int index) {
     }
     index -= movVert;
 
-    // std::cout << "2" << std::endl;
     for (int i = index, iter = -2;; i -= movVert) {
         iter++;
         if (iter > boxDimensions || i < 0) {
@@ -465,7 +413,6 @@ bool IParser::inBox(int index) {
             }
         }
     }
-    // std::cout << "4" << std::endl;
     for (int i = index, iter = -2;; i -= channels) {
         iter++;
         if (iter > boxDimensions || i < 0) {
@@ -481,10 +428,8 @@ bool IParser::inBox(int index) {
             }
         }
     }
-    // std::cout << "Stop" << std::endl;
     debugFile << ">> end H" << std::endl;
     return true;
-    // return index < 0 || index >= size || (r == img[index] && b == img[index+1] && g == img[index+2]);
 }
 
 bool IParser::pixelColorEq(const int &index, const int val) {
