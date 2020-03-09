@@ -1,7 +1,7 @@
 Will solve crosswords from sciencemusicvideos.com learning guides.
 
 Usage:
-./cross.exe \<screenshot\> \<answers\>
+./crossot.exe \<screenshot\> \<answers\>
 
 where:
 `screenshot` is a PERFECT (see *limitations*) screenshot of crossword from the PDF

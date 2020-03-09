@@ -1,0 +1,4 @@
+External libraries, I didn't make them. See the individual files for who made them.
+
+When running the ../build script in the main directory, will create object files for
+all external libraries so as to speed up future compilations; see ../build for more info.

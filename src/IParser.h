@@ -6,19 +6,18 @@
 #include "Node.h"
 #include "Solver.h"
 
-struct error {
-    // Meh
-};
+typedef const unsigned char *const imagebpm;
 
 class IParser {
     public:
-    IParser(const char *path, const char *answerPath);
+    IParser(const int &width, const int &height, const int &channels, imagebpm image);
+    void run(const char *answerPath);
     private:
     void parseBox(int i, const int &x, const int &y, const char &direction);
-    const unsigned char *const &img;
-    int width;
-    int height;
-    int channels;
+    imagebpm img;
+    const int width;
+    const int height;
+    const int channels;
     int channelsM1;
     int movVert;
     int movVertSqr;
@@ -36,14 +35,11 @@ class IParser {
     int locatorMaxX = -0xFFFFFF;
     int locatorMinY = 0xFFFFFF;
     int locatorMaxY = -0xFFFFFF;
-    int totalAns = 0;
     bool addLocation(int x, int y, const int &i);
     bool hasNumber(int i);
     bool inBox(int index);
     bool pixelColorEq(const int &index, const int val);
     void debug_printCoords(int i);
-    // two bits, 01 vertical, 11 horizontal, 00 not a starter node
-    char getCanHorizontal(const int &i);
 };
 
 #endif

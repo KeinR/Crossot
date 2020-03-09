@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "../external/stb_image.h"
 #include "IParser.h"
 #include "Solver.h"
 
@@ -7,13 +8,22 @@
 
 // DEBUG
 #include <fstream>
-std::ofstream debugFile("debug.log");
+std::ofstream debugFile("crossot.log");
 
 int main(int argc, char *argv[]) {
     if (argc != 3) {
         std::cout << "Invalid # of arguments, must be `<imagefile> <answerdoc>`" << std::endl;
         return 1;
     }
-    IParser parse(argv[1], argv[2]);
+    int width;
+    int height;
+    int channels;
+    imagebpm image = stbi_load(argv[1], &width, &height, &channels, 0);
+    if (image == NULL) {
+        std::cout << "Error: Failed to load image: " << stbi_failure_reason() << std::endl;
+        exit(1);
+    }
+    IParser parse(width, height, channels, image);
+    parse.run(argv[2]);
     return 0;
 }

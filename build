@@ -1,3 +1,20 @@
 #!/usr/bin/env bash
-mingw32-g++ src/*.cpp external/*.o -o cross.exe
-# mingw32-g++ external/stb.cpp -c -o stb.o
+
+# Set desired g++ compiler (can also be used as a prefix...)
+compiler="mingw32-g++"
+# Location to dump executable
+out="crossot.exe"
+
+# In case is run from outside home directory
+home=$(dirname "$0")
+
+# Generate object file cache of external library files
+# to speed up future compilations
+for extSource in $home/external/*.cpp; do
+    object="${extSource::-3}o"
+    if [[ !(-f $object) ]]; then
+        $compiler $extSource -c -o $object
+    fi
+done
+
+$compiler $home/src/*.cpp $home/external/*.o -o $out

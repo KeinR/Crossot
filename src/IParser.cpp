@@ -7,22 +7,16 @@
 #include "Node.h"
 #include "Solver.h"
 #include "main.h"
-#include "../external/stb_image.h"
 
 #include "IParser.h"
 
 #define K_REASONABLE_SKIP 8
 
-IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, &width, &height, &channels, 0)) {
-    if (img == NULL) {
-        std::cout << "Error: Failed to load image: " << stbi_failure_reason() << std::endl;
-        error e;
-        throw e;
-    }
+IParser::IParser(const int &width, const int &height, const int &channels, imagebpm image):
+width(width), height(height), channels(channels), img(image) {
     if (width < 10 || height < 10) {
         std::cout << "Error: image size too small" << std::endl;
-        error e;
-        throw e;
+        exit(1);
     }
 
     channelsM1 = channels-1;
@@ -44,8 +38,9 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
     debugFile << "Channles " << channels << std::endl;
 
     debugFile << "BG = " << (int)img[0] << ", " << (int)img[1] << ", " << (int)img[2] << std::endl;
+}
 
-
+void IParser::run(const char *answerPath) {
     int i = channels;
     // Find first box and determine box size
     for (; i+channelsM1 < size; i += channels) {
@@ -94,7 +89,7 @@ IParser::IParser(const char *path, const char *answerPath): img(stbi_load(path, 
     for (int y = locatorMinY; y <= locatorMaxY; y++) {
         for (int x = locatorMinX; x <= locatorMaxX; x++) {
             if (locatorMap.count(x) && locatorMap[x].count(y)) {
-                if (locatorMap[x][y].hasLeNumber()) {
+                if (locatorMap[x][y].doesHaveNumber) {
                     if (number <= 9) {
                         debugFile << (unsigned char)(number + 48);
                     } else {
@@ -304,15 +299,13 @@ bool IParser::addLocation(int x, int y, const int &i) {
 
     if (!locatorMap.count(x)) {
         std::map<int, Node> leMap;
-        leMap.emplace(std::move(y), Node(getCanHorizontal(i)));
+        leMap.emplace(std::move(y), Node(hasNumber(i)));
         locatorMap.emplace(std::move(x), std::move(leMap));
-        totalAns++;
         return true;
     } else {
         std::map<int, Node> &leMap = locatorMap[std::move(x)];
         if (!leMap.count(y)) {
-            leMap.emplace(std::move(y), Node(getCanHorizontal(i)));
-            totalAns++;
+            leMap.emplace(std::move(y), Node(hasNumber(i)));
             return true;
         }
     }
@@ -440,10 +433,3 @@ void IParser::debug_printCoords(int i) {
     debugFile << "(" << ((i / channels) % width) << ", " << ((i / channels) / width) << "), " << i << ", len = " << size << std::endl;
 }
 
-char IParser::getCanHorizontal(const int &i) {
-    return (char)(
-        hasNumber(i) |
-        ((inBox(i + moveHorzSqr) && !inBox(i - moveHorzSqr)) << 1) |
-        ((inBox(i + movVertSqr) && !inBox(i - movVertSqr)) << 2)
-    );
-}
