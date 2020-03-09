@@ -2,7 +2,6 @@
 #define SOLVE_H_INCLUDED
 
 #include <string>
-#include <list>
 #include <vector>
 
 #include "Node.h"

@@ -1,8 +1,6 @@
 #ifndef NODE_H_INCLUDED
 #define NODE_H_INCLUDED
 
-#include <vector>
-
 class Node {
     public:
     Node();
