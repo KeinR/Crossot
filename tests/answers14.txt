@@ -1,0 +1,3 @@
+ATP, active, bilayer, carbohydrate, channels, cholesterol, diffusion, endocytosis, exocytosis,
+facilitated, gradient, hypertonic, hypotonic, mosaic, osmosis, passive, phagocytosis, phosphate, phospholipid,
+plasmolysis, polar, protein, selective, simple, tail

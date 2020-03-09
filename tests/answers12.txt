@@ -1,0 +1,3 @@
+Alleles, Assortment, Chiasma, Chromatids, Crossing, Diploid, Down, Gamete, Germ, Haploid,
+Homologous, Karyotype, Klinefelter, Mammals, Mitosis, Monosomy, Replication, Sperm, Synapsis, Temperature,
+Tetrad, Trisomy, Turner, XYY, autosomes, meiosis, nondisjunction, unique, zygote

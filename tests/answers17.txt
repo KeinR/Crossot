@@ -1,0 +1,2 @@
+ATP, Axon, EPSP, IPSP, Ranvier, Resting, action, central, dendrite, depolarization, gated, graded, hyperpolarization,
+interneuron, myelin, neuron, neurotransmitter, potassium, presynaptic, refractory, saltatory, sodium, summation, synapse, threshold, undershoot

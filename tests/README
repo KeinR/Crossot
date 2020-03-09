@@ -6,3 +6,16 @@ Test cases:
 ./cross.exe tests/trial5.PNG tests/answers5.txt
 ./cross.exe tests/trial6.PNG tests/answers6.txt
 ./cross.exe tests/trial7.PNG tests/answers7.txt
+./cross.exe tests/trial8.PNG tests/answers8.txt
+./cross.exe tests/trial9.PNG tests/answers9.txt
+./cross.exe tests/trial10.PNG tests/answers10.txt
+./cross.exe tests/trial11.PNG tests/answers11.txt
+./cross.exe tests/trial12.PNG tests/answers12.txt
+./cross.exe tests/trial13.PNG tests/answers13.txt
+./cross.exe tests/trial14.PNG tests/answers14.txt
+./cross.exe tests/trial15.PNG tests/answers15.txt
+./cross.exe tests/trial16.PNG tests/answers16.txt
+./cross.exe tests/trial17.PNG tests/answers17.txt
+./cross.exe tests/trial18.PNG tests/answers18.txt
+./cross.exe tests/trial19.PNG tests/answers19.txt
+./cross.exe tests/trial20.PNG tests/answers20.txt
