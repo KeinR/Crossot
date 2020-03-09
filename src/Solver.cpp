@@ -15,6 +15,9 @@ ans(ans), seq(seq), seqLength(seqLength) {
 }
 
 void Solver::solve() {
+    #ifdef START_SEARCH_UNIQUE
+    tryUnique(); // See main.h for details
+    #endif // end START_SEARCH_UNIQUE
     if (!rec(0)) {
         std::cout << "Can't do it I'm afraid..." << std::endl;
         exit(1);
@@ -85,7 +88,7 @@ bool Solver::rec(int id) {
                         Node *&n = ques.body[c];
                         if (n->changeId == id) {
                             n->changeId = 0;
-                            n->val = n->changeId + 0x30;
+                            n->val = n->changeId + 0x30; // Debug thing
                         }
                     }
                     ans[i].used = false;
@@ -98,11 +101,13 @@ bool Solver::rec(int id) {
     }
 
     // Welp
-    debugFile << "CRITICAL ERROR: Answers depleated, yet all questions not filled" << std::endl;
+    std::cout << "CRITICAL ERROR: Answers depleated, yet all questions not filled" << std::endl;
     exit(1);
 }
 
-int Solver::getIndexUniqueAns() {
+#ifdef START_SEARCH_UNIQUE
+void Solver::tryUnique() {
+    int indexU = -1;
     for (int i = 0; i < ans.size();) {
         const int length = ans[i].value.length();
         const int li = i;
@@ -110,11 +115,40 @@ int Solver::getIndexUniqueAns() {
         while (++i < ans.size() && length == ans[i].value.length()) {
             if (!ans[i].used) {
                 good = false;
+                break;
             }
         }
         if (good) {
-            return li;
+            indexU = li;
+            break;
         }
     }
-    return -1;
+
+    if (indexU != -1) {
+        answer &a = ans[indexU];
+        int indexUQ = -1;
+        for (int i = 0; i < seqLength; i++) {
+            question &q = seq[i];
+            if (!q.used && q.body.size() == a.value.length()) {
+                const int li = i;
+                while (++i < seqLength && seq[i].body.size() == a.value.length()) {
+                    if (!seq[i].used) {
+                        return;
+                    }
+                }
+                indexUQ = li;
+            }
+        }
+
+        if (indexUQ != -1) {
+            question &q = seq[indexUQ];
+            a.used = true;
+            q.used = true;
+            for (int i = 0; i < a.value.length(); i++) {
+                q.body[i]->val = a.value[i];
+                q.body[i]->changeId = -1;
+            }
+        }
+    }
 }
+#endif // end START_SEARCH_UNIQUE

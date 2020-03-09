@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Node.h"
+#include "main.h"
 
 struct answer {
     answer();
@@ -34,8 +35,9 @@ class Solver {
     question *&seq;
     const int &seqLength;
     bool rec(int id);
-    // Returns > -1 for index of unique length answer
-    int getIndexUniqueAns();
+    #ifdef START_SEARCH_UNIQUE
+    void tryUnique();
+    #endif // end START_SEARCH_UNIQUE
 };
 
 #endif

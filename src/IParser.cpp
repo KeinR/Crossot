@@ -95,7 +95,6 @@ void IParser::run(const char *answerPath) {
                     } else {
                         debugFile << (unsigned char)(number + 72);
                     }
-                    debugFile << "NUMBER: " << number << std::endl;
 
                     std::map<int, Node> &mapXCache = locatorMap[x];
 
