@@ -1,3 +1,5 @@
+[![Run on Repl.it](https://repl.it/badge/github/KeinR/Crossot)](https://repl.it/github/KeinR/Crossot)
+
 Will solve crosswords from sciencemusicvideos.com learning guides.
 
 Usage:
