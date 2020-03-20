@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Set desired g++ compiler (can also be used as a prefix...)
-compiler="mingw32-g++"
+compiler="g++"
 # Location to dump executable
 out="crossot.exe"
 
@@ -10,8 +10,8 @@ home=$(dirname "$0")
 
 # Generate object file cache of external library files
 # to speed up future compilations
-for extSource in $home/external/*.cpp; do
-    object="${extSource::-3}o"
+for extSource in $home/external/*.c; do
+    object="${extSource::-1}o"
     if [[ !(-f $object) ]]; then
         $compiler $extSource -c -o $object
     fi
