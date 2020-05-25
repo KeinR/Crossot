@@ -18,6 +18,15 @@ Tested & suceeded with **20** different crosswords (see `./tests`) of ~46 total 
 ### *Motivation:*
 Just kinda' felt like it.
 
+#### Update 5/25/2020
+So Mr. W was giving us the assignments in Google Docs because of the quarentine, and because it was convinient I decided I might
+as well try out Crossot with the original, source image as opposed to a screenshot. Well... It didn't work. After going through
+the logs and analyzing the images I've found that the source image is far different from the screenshot. Perhaps the Windows
+snipping tool does some filtering, perhaps the image changes when it's in pdf form. Whatever the case, I just want to reiterate,
+***Crossot, as of right now, only works on screenshots***. That's something that may not change soon. If anyone wants to open up
+a PR and get that fixed, I'd be a happy camper... I didn't really comment much though, and I made this when I was first learning C++...
+I'll throw a MIT license on the source to make things a little easier.
+
 \*
 
 \*
