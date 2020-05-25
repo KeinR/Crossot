@@ -19,7 +19,7 @@ void Solver::solve() {
     tryUnique(); // See main.h for details
     #endif // end START_SEARCH_UNIQUE
     if (!rec(0)) {
-        std::cout << "Can't do it I'm afraid..." << std::endl;
+        std::cerr << "Can't do it I'm afraid..." << std::endl;
         exit(1);
     }
 }
@@ -101,7 +101,7 @@ bool Solver::rec(int id) {
     }
 
     // Welp
-    std::cout << "CRITICAL ERROR: Answers depleated, yet all questions not filled" << std::endl;
+    std::cerr << "CRITICAL ERROR: Answers depleated, yet all questions not filled" << std::endl;
     exit(1);
 }
 

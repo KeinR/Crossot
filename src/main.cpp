@@ -12,7 +12,7 @@ std::ofstream debugFile("crossot.log");
 
 int main(int argc, char *argv[]) {
     if (argc != 3) {
-        std::cout << "Invalid # of arguments, must be `<imagefile> <answerdoc>`" << std::endl;
+        std::cerr << "Invalid # of arguments, must be `<imagefile> <answerdoc>`" << std::endl;
         return 1;
     }
     int width;
@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     int channels;
     imagebpm image = stbi_load(argv[1], &width, &height, &channels, 0);
     if (image == NULL) {
-        std::cout << "Error: Failed to load image: " << stbi_failure_reason() << std::endl;
+        std::cerr << "Error: Failed to load image: " << stbi_failure_reason() << std::endl;
         exit(1);
     }
     IParser parse(width, height, channels, image);

@@ -15,7 +15,7 @@
 IParser::IParser(const int &width, const int &height, const int &channels, imagebpm image):
 width(width), height(height), channels(channels), img(image) {
     if (width < 10 || height < 10) {
-        std::cout << "Error: image size too small" << std::endl;
+        std::cerr << "Error: image size too small" << std::endl;
         exit(1);
     }
 
@@ -218,7 +218,9 @@ void IParser::run(const char *answerPath) {
             }
         }
         if (!good) {
-            std::cout << "ERROR: question #" << (i+1) << " without possible answer" << std::endl;
+            debugFile << "ERROR: question #" << seq[i].number << " without possible answer; " <<
+            "length = " << vec.size() << std::endl;
+            std::cerr << "ERROR: question #" << seq[i].number << " without possible answer" << std::endl;
             exit(1);
         }
     }
